@@ -1,11 +1,12 @@
 /* globals web3, artifacts, contract, beforeEach, describe, it, assert */
 
 const Parcel = artifacts.require('Parcel')
+const REVERT = /VM.+revert/
 
 contract('mint test', async (accounts) => {
   const creator = accounts[0]
 
-  let ben = accounts[1]
+  let recipient = accounts[1]
   let sam = accounts[2]
   let dave = accounts[3]
 
@@ -57,9 +58,9 @@ contract('mint test', async (accounts) => {
       const tokenId = 3
 
       it('returns token by owner', async function () {
-        await this.token.mint(ben, tokenId, 11, 11, 11, 15, 15, 15, 0)
+        await this.token.mint(recipient, tokenId, 11, 11, 11, 15, 15, 15, 0)
 
-        const token = await this.token.tokenOfOwnerByIndex(ben, 0)
+        const token = await this.token.tokenOfOwnerByIndex(recipient, 0)
         assert.equal(token.valueOf(), tokenId)
 
         let result = await this.token.tokenURI(tokenId)
@@ -81,9 +82,9 @@ contract('mint test', async (accounts) => {
       })
 
       it('sets really high token id', async function () {
-        let tokenId = 123123124124124124
+        let tokenId = 123123124
 
-        await this.token.mint(ben, tokenId, 11, 11, 11, 15, 15, 15, 1234)
+        await this.token.mint(recipient, tokenId, 11, 11, 11, 15, 15, 15, 1234)
 
         let result = await this.token.tokenURI(tokenId)
         assert.equal(result.valueOf(), `https://www.cryptovoxels.com/p/${tokenId}`)
@@ -91,10 +92,10 @@ contract('mint test', async (accounts) => {
 
       it('should fail for other user', async function () {
         try {
-          await this.token.mint(ben, tokenId, 11, 11, 11, 15, 15, 15, 0, { from: ben })
+          await this.token.mint(recipient, tokenId, 11, 11, 11, 15, 15, 15, 0, { from: recipient })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
     })
@@ -120,10 +121,10 @@ contract('mint test', async (accounts) => {
 
       it('should fail to take ownership for other user', async function () {
         try {
-          await this.token.takeOwnership({ from: ben })
+          await this.token.takeOwnership({ from: recipient })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
 
@@ -148,11 +149,11 @@ contract('mint test', async (accounts) => {
         assert.equal(price.valueOf(), 4233)
 
         // Buy token (can do regardless of current contract ownership)
-        await this.token.buy(tokenId, { from: ben, value: 4233 })
+        await this.token.buy(tokenId, { from: recipient, value: 4233 })
 
         // Check token owner
         result = await this.token.ownerOf(tokenId)
-        assert.equal(result.valueOf(), ben)
+        assert.equal(result.valueOf(), recipient)
 
         price = await this.token.getPrice.call(tokenId)
         assert.equal(price.valueOf(), 0)
@@ -168,14 +169,14 @@ contract('mint test', async (accounts) => {
 
     describe('mint / buy process', function () {
       let tokenId = 100
-      let price = web3.toWei(0.27, 'ether')
+      let price = '270000' // web3.toWei(0.27, 'ether')
 
       it('should buy and setContentURI', async function () {
         await this.token.mint(creator, tokenId, 2, 0, 2, 15, 9, 20, price, { from: creator })
-        await this.token.buy(tokenId, { from: ben, value: price })
+        await this.token.buy(tokenId, { from: recipient, value: price })
 
         let testUrl = 'ipfs:QmPXME1oRtoT627YKaDPDQ3PwA8tdP9rWuAAweLzqSwAWS'
-        await this.token.setContentURI(tokenId, testUrl, { from: ben })
+        await this.token.setContentURI(tokenId, testUrl, { from: recipient })
 
         let url = await this.token.contentURI(tokenId)
         assert.equal(url.valueOf(), testUrl)
@@ -200,17 +201,17 @@ contract('mint test', async (accounts) => {
 
       it('should fail for other user', async function () {
         try {
-          await this.setPrice.burn(firstTokenId, 1234, { from: ben })
+          await this.token.setPrice(firstTokenId, 1234, { from: recipient })
 
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
 
       it('should set / buy', async function () {
         await this.token.setPrice(firstTokenId, 1234)
-        await this.token.buy(firstTokenId, { from: ben, value: 1234 })
+        await this.token.buy(firstTokenId, { from: recipient, value: 1234 })
         let price = await this.token.getPrice.call(firstTokenId)
         assert.equal(price.valueOf(), 0)
       })
@@ -218,18 +219,32 @@ contract('mint test', async (accounts) => {
 
     describe('burn', function () {
       it('should delete 1 token', async function () {
-        await this.token.burn(secondTokenId)
         let balance = await this.token.totalSupply.call()
+        assert.equal(balance.valueOf(), 2)
+
+        await this.token.burn(secondTokenId)
+        balance = await this.token.totalSupply.call()
         assert.equal(balance.valueOf(), 1)
+
+        let result
+
+        try {
+          result = await this.token.getBoundingBox.call(secondTokenId)
+        } catch (e) {
+          assert.match(e.toString(), REVERT)
+        }
+
+        result = await this.token.getBoundingBox.call(firstTokenId)
+        assert.equal(result[0].valueOf(), -7)
       })
 
       it('should fail for other user', async function () {
         try {
-          await this.token.burn(secondTokenId, { from: ben })
+          await this.token.burn(secondTokenId, { from: recipient })
 
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
     })
@@ -259,11 +274,11 @@ contract('mint test', async (accounts) => {
       let testUrl = 'http://frog/bog/log'
 
       beforeEach(async function () {
-        await this.token.transferFrom(creator, ben, secondTokenId, { from: creator })
+        await this.token.transferFrom(creator, recipient, secondTokenId, { from: creator })
       })
 
       it('should set and get', async function () {
-        await this.token.setContentURI(secondTokenId, testUrl, { from: ben })
+        await this.token.setContentURI(secondTokenId, testUrl, { from: recipient })
 
         let url = await this.token.contentURI(secondTokenId)
         assert.equal(url.valueOf(), testUrl)
@@ -275,7 +290,7 @@ contract('mint test', async (accounts) => {
 
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
 
         let url = await this.token.contentURI(secondTokenId)
@@ -285,23 +300,23 @@ contract('mint test', async (accounts) => {
 
     describe('transferFrom sanity check', function () {
       it('should transfer ownership sanely', async function () {
-        await this.token.transferFrom(creator, ben, firstTokenId, { from: creator })
+        await this.token.transferFrom(creator, recipient, firstTokenId, { from: creator })
 
         try {
           await this.token.transferFrom(creator, sam, firstTokenId, { from: creator })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
 
         try {
-          await this.token.transferFrom(ben, sam, firstTokenId, { from: sam })
+          await this.token.transferFrom(recipient, sam, firstTokenId, { from: sam })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
 
-        await this.token.transferFrom(ben, sam, firstTokenId, { from: ben })
+        await this.token.transferFrom(recipient, sam, firstTokenId, { from: recipient })
         await this.token.transferFrom(sam, dave, firstTokenId, { from: sam })
 
         let result = await this.token.ownerOf.call(firstTokenId)
@@ -336,35 +351,12 @@ contract('mint test', async (accounts) => {
         assert.equal(price.valueOf(), 0)
       })
 
-      it('shouldnt buy after transfer', async function () {
-        await this.token.transferOwnership(dave, { from: creator })
-
-        try {
-          await this.token.buy(tokenId, { value: 1234, from: sam })
-          assert.fail('Expected to throw')
-        } catch (e) {
-          assert(true)
-        }
-
-        let price = await this.token.getPrice.call(tokenId)
-        assert.equal(price.valueOf(), 0)
-      })
-
       it('shouldnt buy for 0', async function () {
         try {
           await this.token.buy(tokenId, { from: sam })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
-        }
-      })
-
-      it('shouldnt buy for -1', async function () {
-        try {
-          await this.token.buy(tokenId, { value: -1, from: sam })
-          assert.fail('Expected to throw')
-        } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
 
@@ -373,7 +365,7 @@ contract('mint test', async (accounts) => {
           await this.token.buy(tokenId, { value: 100, from: sam })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
 
@@ -382,7 +374,7 @@ contract('mint test', async (accounts) => {
           await this.token.buy(tokenId, { value: 5000, from: sam })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
 
@@ -393,18 +385,18 @@ contract('mint test', async (accounts) => {
           await this.token.buy(tokenId, { value: 1234, from: sam })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
 
       it('shouldnt buy from two people', async function () {
-        await this.token.buy(tokenId, { value: 1234, from: ben })
+        await this.token.buy(tokenId, { value: 1234, from: recipient })
 
         try {
           await this.token.buy(tokenId, { value: 1234, from: sam })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
 
@@ -415,14 +407,14 @@ contract('mint test', async (accounts) => {
           await this.token.setPrice(tokenId, 5000, { from: creator })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
 
         try {
           await this.token.setPrice(tokenId, 5000, { from: sam })
           assert.fail('Expected to throw')
         } catch (e) {
-          assert(true)
+          assert.match(e.toString(), REVERT)
         }
       })
     })

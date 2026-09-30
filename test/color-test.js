@@ -8,7 +8,7 @@ const addr = '0x79986aF15539de2db9A5086382daEdA917A9CF0C'
 contract('mint test', async (accounts) => {
   const creator = accounts[0]
 
-  let ben = accounts[1]
+  let recipient = accounts[1]
   let sam = accounts[2]
   let dave = accounts[3]
 
@@ -32,12 +32,12 @@ contract('mint test', async (accounts) => {
 
   it('should mint', async () => {
     let instance = await Color.deployed(addr)
-    await instance.mint(ben, 1000)
+    await instance.mint(recipient, 1000)
 
     let balance = await instance.totalSupply.call()
     assert.equal(balance.valueOf(), 1000)
 
-    balance = await instance.balanceOf.call(ben)
+    balance = await instance.balanceOf.call(recipient)
     assert.equal(balance.valueOf(), 1000)
 
     balance = await instance.balanceOf.call(dave)
@@ -64,38 +64,38 @@ contract('mint test', async (accounts) => {
     let addr = parcel.address
 
     let instance = await Color.new(addr)
-    await instance.mint(ben, 1000)
+    await instance.mint(recipient, 1000)
 
     // Get bens balance
-    let balance = await instance.balanceOf.call(ben)
+    let balance = await instance.balanceOf.call(recipient)
     assert.equal(balance.valueOf(), 1000)
 
     // Mint parcel #7
-    await parcel.mint(ben, 7, 11, 11, 11, 15, 15, 15, 0)
+    await parcel.mint(recipient, 7, 11, 11, 11, 15, 15, 15, 0)
 
     // Stake
-    await instance.stake(ben, 900, 7, { from: ben })
+    await instance.stake(recipient, 900, 7, { from: recipient })
 
     // Supply is reduced
     balance = await instance.totalSupply.call()
     assert.equal(balance.valueOf(), 100)
 
     // Bens balance reduced
-    balance = await instance.balanceOf.call(ben)
+    balance = await instance.balanceOf.call(recipient)
     assert.equal(balance.valueOf(), 100)
 
     let stake = await instance.getStake.call(7)
     assert.equal(stake.valueOf(), 900)
 
     // Withdraw
-    await instance.withdraw(ben, 300, 7, { from: ben })
+    await instance.withdraw(recipient, 300, 7, { from: recipient })
 
     // Supply increased
     balance = await instance.totalSupply.call()
     assert.equal(balance.valueOf(), 400)
 
     // Balance increased
-    balance = await instance.balanceOf.call(ben)
+    balance = await instance.balanceOf.call(recipient)
     assert.equal(balance.valueOf(), 400)
 
     // Stake decreased
@@ -120,7 +120,7 @@ contract('mint test', async (accounts) => {
 
     try {
       // too much
-      await instance.withdraw(ben, 1000, 7, { from: ben })
+      await instance.withdraw(recipient, 1000, 7, { from: recipient })
       assert.fail('Expected to throw')
     } catch (e) {
       assert(true)
@@ -128,7 +128,7 @@ contract('mint test', async (accounts) => {
 
     // New owner of parcel can withdraw
 
-    await parcel.transferFrom(ben, dave, 7, { from: ben })
+    await parcel.transferFrom(recipient, dave, 7, { from: recipient })
     let result = await parcel.ownerOf.call(7)
     assert.equal(result.valueOf(), dave)
 

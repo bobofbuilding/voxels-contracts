@@ -9,7 +9,7 @@
     "build-name": "truffle-flattener contracts/Name.sol > name.flattened.sol"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "openzeppelin-solidity": "1.9.0"
   }
