@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "chainId": 1,
+  "legacyContract": "0x0000000000000000000000000000000000000123",
+  "snapshotBlock": "90",
+  "blockHash": "0xabababababababababababababababababababababababababababababababab",
+  "parcelCount": 2,
+  "root": "0x57b7407660ddc8ca9c2fd8c1efe6108981e8859099ec827186db77419f9e84ef",
+  "leafTypes": [
+    "uint256",
+    "address",
+    "uint256",
+    "uint256",
+    "address",
+    "int16",
+    "int16",
+    "int16",
+    "int16",
+    "int16",
+    "int16",
+    "string"
+  ],
+  "claims": [
+    {
+      "tokenId": "0",
+      "owner": "0x00000000000000000000000000000000000A11cE",
+      "bounds": [
+        -10,
+        0,
+        -10,
+        10,
+        20,
+        10
+      ],
+      "contentURI": "ipfs://scene",
+      "proof": [
+        "0x89a49ccd6a6fc1707a923ccf768a0546362c5a4dc90c87f89872263e92d53434"
+      ]
+    },
+    {
+      "tokenId": "2",
+      "owner": "0x0000000000000000000000000000000000000B0b",
+      "bounds": [
+        -10,
+        0,
+        -10,
+        10,
+        20,
+        10
+      ],
+      "contentURI": "",
+      "proof": [
+        "0xaf5c2ff6b095189747568c61cfff43a1d600cbfa451284ddf37e4381f01cab47"
+      ]
+    }
+  ],
+  "tree": {
+    "format": "standard-v1",
+    "leafEncoding": [
+      "uint256",
+      "address",
+      "uint256",
+      "uint256",
+      "address",
+      "int16",
+      "int16",
+      "int16",
+      "int16",
+      "int16",
+      "int16",
+      "string"
+    ],
+    "tree": [
+      "0x57b7407660ddc8ca9c2fd8c1efe6108981e8859099ec827186db77419f9e84ef",
+      "0xaf5c2ff6b095189747568c61cfff43a1d600cbfa451284ddf37e4381f01cab47",
+      "0x89a49ccd6a6fc1707a923ccf768a0546362c5a4dc90c87f89872263e92d53434"
+    ],
+    "values": [
+      {
+        "value": [
+          "1",
+          "0x0000000000000000000000000000000000000123",
+          "90",
+          "0",
+          "0x00000000000000000000000000000000000A11cE",
+          -10,
+          0,
+          -10,
+          10,
+          20,
+          10,
+          "ipfs://scene"
+        ],
+        "treeIndex": 1
+      },
+      {
+        "value": [
+          "1",
+          "0x0000000000000000000000000000000000000123",
+          "90",
+          "2",
+          "0x0000000000000000000000000000000000000B0b",
+          -10,
+          0,
+          -10,
+          10,
+          20,
+          10,
+          ""
+        ],
+        "treeIndex": 2
+      }
+    ]
+  }
+}

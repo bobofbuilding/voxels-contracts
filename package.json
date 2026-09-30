@@ -1,16 +1,24 @@
 {
-  "name": "cryptovoxels-contracts",
-  "version": "1.0.0",
-  "description": "",
-  "scripts": {
-    "test": "truffle test",
-    "build-parcel": "truffle-flattener contracts/Parcel.sol > parcel.flattened.sol",
-    "build-color": "truffle-flattener contracts/Color.sol > color.flattened.sol",
-    "build-name": "truffle-flattener contracts/Name.sol > name.flattened.sol"
-  },
-  "author": "",
+  "name": "voxels-contracts",
+  "version": "2.0.0",
+  "private": true,
+  "description": "Ethereum mainnet contracts and parcel migration tooling",
+  "type": "module",
   "license": "MIT",
+  "scripts": {
+    "build": "forge build",
+    "test": "node --test scripts/*.test.mjs && forge test",
+    "format": "forge fmt",
+    "check": "forge fmt --check && npm test && forge build --sizes",
+    "snapshot:parcels": "node scripts/export-parcels.mjs",
+    "proofs:parcels": "node scripts/build-parcel-proofs.mjs"
+  },
   "dependencies": {
-    "openzeppelin-solidity": "1.9.0"
+    "@openzeppelin/contracts": "5.6.1",
+    "@openzeppelin/merkle-tree": "1.0.8",
+    "ethers": "6.17.0"
+  },
+  "overrides": {
+    "uuid": "11.1.1"
   }
 }

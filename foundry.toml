@@ -1,0 +1,15 @@
+[profile.default]
+src = "src"
+test = "test-solidity"
+script = "script"
+out = "out"
+libs = ["node_modules", "lib"]
+solc_version = "0.8.30"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+fs_permissions = [{ access = "read", path = "./test-solidity/fixtures" }]
+remappings = ["@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/"]
+
+[rpc_endpoints]
+mainnet = "${MAINNET_RPC_URL}"
